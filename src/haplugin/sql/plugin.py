@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from hatak.plugin import Plugin
+from hatak.plugin import Plugin, RequestPlugin
 
 
 class SqlPlugin(Plugin):
@@ -10,13 +10,21 @@ class SqlPlugin(Plugin):
         engine = create_engine(self.settings['db:url'])
         self.config.registry['db_engine'] = engine
         self.config.registry['db'] = sessionmaker(bind=engine)()
-        self.config.add_request_method(self.add_db, 'db', reify=True)
 
-    def add_db(self, request):
-        db = request.registry['db']
-        db.flush()
-        return db
+    def add_request_plugins(self):
+        self.add_request_plugin(DatabaseRequestPlugin)
 
     def add_unpackers(self, unpacker):
         unpacker.add('db', lambda req: req.db)
         unpacker.add('query', lambda req: req.db.query)
+
+
+class DatabaseRequestPlugin(RequestPlugin):
+
+    def __init__(self):
+        super().__init__('db')
+
+    def return_once(self):
+        db = self.registry['db']
+        db.flush()
+        return db
