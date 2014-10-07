@@ -14,9 +14,9 @@ class SqlPlugin(Plugin):
     def add_request_plugins(self):
         self.add_request_plugin(DatabaseRequestPlugin)
 
-    def add_unpackers(self, unpacker):
-        unpacker.add('db', lambda req: req.db)
-        unpacker.add('query', lambda req: req.db.query)
+    def add_unpackers(self):
+        self.unpacker.add('db', lambda req: req.db)
+        self.unpacker.add('query', lambda req: req.db.query)
 
 
 class DatabaseRequestPlugin(RequestPlugin):
