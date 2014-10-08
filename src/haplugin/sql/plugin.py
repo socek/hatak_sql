@@ -12,7 +12,10 @@ class SqlPlugin(Plugin):
         self.config.registry['db'] = sessionmaker(bind=engine)()
 
     def add_request_plugins(self):
-        self.add_request_plugin(DatabaseRequestPlugin)
+        if self.settings['db:url'].startswith('sqlite'):
+            self.add_request_plugin(SqliteRequestPlugin)
+        else:
+            self.add_request_plugin(DatabaseRequestPlugin)
 
     def add_unpackers(self):
         self.unpacker.add('db', lambda req: req.db)
@@ -28,3 +31,11 @@ class DatabaseRequestPlugin(RequestPlugin):
         db = self.registry['db']
         db.flush()
         return db
+
+
+class SqliteRequestPlugin(DatabaseRequestPlugin):
+
+    def return_once(self):
+        engine = self.registry['db_engine']
+        self.registry['db'] = sessionmaker(bind=engine)()
+        return super().return_once()
