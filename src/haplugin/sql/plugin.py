@@ -1,10 +1,26 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from morfdict import StringDict
 
 from hatak.plugin import Plugin, RequestPlugin
 
 
 class SqlPlugin(Plugin):
+
+    def append_settings(self):
+        def morf_sql_url(obj, value):
+            if obj['type'] == 'sqlite':
+                value = 'sqlite:///%(paths:sqlite_db)s'
+            else:
+                value = (
+                    '%(type)s://%(login)s:%(password)s@%(host)s:%(port)s/'
+                    '%(name)s'
+                )
+            return value % obj
+        dbsettings = self.settings.get('db', StringDict())
+        dbsettings['url'] = ''
+        dbsettings.set_morf('url', morf_sql_url)
+        self.settings['db'] = dbsettings
 
     def add_to_registry(self):
         engine = create_engine(self.settings['db:url'])
@@ -12,7 +28,7 @@ class SqlPlugin(Plugin):
         self.config.registry['db'] = sessionmaker(bind=engine)()
 
     def add_request_plugins(self):
-        if self.settings['db:url'].startswith('sqlite'):
+        if self.settings['db']['url'].startswith('sqlite'):
             self.add_request_plugin(SqliteRequestPlugin)
         else:
             self.add_request_plugin(DatabaseRequestPlugin)
