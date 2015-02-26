@@ -5,6 +5,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from haplugin.sql import Base
+from hatak import _test_cache as CACHE
 from hatak.testing import RequestFixture
 from hatak.unpackrequest import unpack
 
@@ -13,32 +14,31 @@ class DatabaseFixture(RequestFixture):
 
     @fixture(scope="session")
     def raw_db(self, app):
-        print('Recreating database...')
-        database = DatabaseTestCreation(app.settings)
-        database.recreate_database()
+        if 'db' not in CACHE:
+            print('Recreating database...')
+            database = DatabaseTestCreation(app.settings)
+            database.recreate_database()
 
-        engine, session = database.get_engine_and_session()
+            engine, session = database.get_engine_and_session()
 
-        print('Creating all tables...')
-        database.create_all(engine)
+            print('Creating all tables...')
+            database.create_all(engine)
 
-        return engine, session
+            CACHE['db'] = engine, session
 
-    @fixture(scope="session")
-    def db(self, raw_db):
-        return raw_db[1]
+        return CACHE['db']
+
+    @fixture
+    def db(self, raw_db, request):
+        db = raw_db[1]
+        request.registry['db'] = db
+        request.db = db
+        unpack(self, request)
+        return db
 
     @fixture(scope="session")
     def db_engine(self, raw_db):
         return raw_db[0]
-
-    @fixture
-    def request(self, app, db):
-        request = self._get_default_request(app)
-        request.registry['db'] = db
-        request.db = db
-        unpack(self, request)
-        return request
 
 
 class DatabaseTestCreation(object):
