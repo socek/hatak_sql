@@ -9,7 +9,7 @@ install_requires = [
 if __name__ == '__main__':
     setup(
         name='Hatak_Sql',
-        version='0.1.6',
+        version='0.1.7',
         description='SqlAlchemy plugin for Hatak.',
         license='Apache License 2.0',
         packages=find_packages('src'),
