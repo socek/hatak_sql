@@ -46,11 +46,11 @@ class DatabaseTestCreation(object):
     def __init__(self, settings):
         self.settings = settings
 
-    def recreate_database(self):
+    def recreate_database(self, dburlkey='testurl'):
         if self.settings['db']['type'] == 'sqlite':
             self.recreate_sqlite_database()
             return
-        url = self.settings['db']['testurl']
+        url = self.settings['db'][dburlkey]
         engine = create_engine(url)
 
         connection = engine.connect()
@@ -76,6 +76,11 @@ class DatabaseTestCreation(object):
     def create_all(self, engine):
         Base.metadata.bind = engine
         Base.metadata.create_all(engine)
+
+    def init_db(self):
+        engine, session = self.get_engine_and_session()
+        self.create_all(engine)
+        return session
 
 
 class TemporaryDatabaseObject(object):

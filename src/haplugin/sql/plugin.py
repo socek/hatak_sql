@@ -17,9 +17,17 @@ class SqlPlugin(Plugin):
                     '%(name)s'
                 )
             return value % obj
+
+        def morf_main_sql_url(obj, url):
+            return (
+                '%(type)s://%(login)s:%(password)s@%(host)s:%(port)s/postgres'
+                % obj
+            )
         dbsettings = self.settings.get('db', StringDict())
         dbsettings['url'] = ''
         dbsettings.set_morf('url', morf_sql_url)
+        dbsettings['mainurl'] = ''
+        dbsettings.set_morf('mainurl', morf_main_sql_url)
         self.settings['db'] = dbsettings
 
     def add_to_registry(self):
