@@ -53,7 +53,7 @@ class DatabaseRequestPlugin(RequestPlugin):
 
     def return_once(self):
         db = self.registry['db']
-        db.flush()
+        db.expire_all()
         return db
 
 
