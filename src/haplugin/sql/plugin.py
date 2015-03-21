@@ -26,10 +26,14 @@ class SqlPlugin(Plugin):
             return value % obj
 
         def morf_main_sql_url(obj, url):
-            return (
-                '%(type)s://%(login)s:%(password)s@%(host)s:%(port)s/postgres'
-                % obj
-            )
+            if obj['type'] == 'sqlite':
+                return 'sqlite:///%(paths:sqlite_db)s' % obj
+            else:
+                return (
+                    '%(type)s://%(login)s:%(password)s@%(host)s:%(port)s'
+                    '/postgres'
+                    % obj
+                )
         dbsettings = self.settings.get('db', StringDict())
         dbsettings['url'] = ''
         dbsettings.set_morf('url', morf_sql_url)
