@@ -56,8 +56,11 @@ class DatabaseFixture(RequestFixture):
         if 'fixtures' not in CACHE:
             print("Creating fixtures...")
             sql = app.get_plugin(SqlPlugin)
-            sql.fixture.init_fixture(db, app)
-            CACHE['fixtures'] = sql.fixture.create_all()
+            if sql.fixture:
+                sql.fixture.init_fixture(db, app)
+                CACHE['fixtures'] = sql.fixture.create_all()
+            else:
+                CACHE['fixtures'] = None
         return CACHE['fixtures']
 
 

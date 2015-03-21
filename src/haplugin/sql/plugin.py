@@ -9,10 +9,10 @@ from .driver import Driver
 
 class SqlPlugin(Plugin):
 
-    def __init__(self, fixturecls):
+    def __init__(self, fixturecls=None):
         super().__init__()
         self.groups = []
-        self.fixture = fixturecls(self)
+        self.fixture = fixturecls(self) if fixturecls else None
 
     def append_settings(self):
         def morf_sql_url(obj, value):
