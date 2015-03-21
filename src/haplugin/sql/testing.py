@@ -4,10 +4,13 @@ from pytest import fixture
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from haplugin.sql import Base
 from hatak import _test_cache as CACHE
 from hatak.testing import RequestFixture
 from hatak.unpackrequest import unpack
+
+from .models import Base
+from .plugin import SqlPlugin
+from .driver import Driver
 
 
 class DatabaseFixture(RequestFixture):
@@ -39,6 +42,23 @@ class DatabaseFixture(RequestFixture):
     @fixture(scope="session")
     def db_engine(self, raw_db):
         return raw_db[0]
+
+    @fixture
+    def driver(self, app, request):
+        sql = app.get_plugin(SqlPlugin)
+        request.driver = Driver(request.db)
+        for group in sql.groups:
+            request.driver.add_group(group)
+        return request.driver
+
+    @fixture
+    def fixtures(self, db, app, driver):
+        if 'fixtures' not in CACHE:
+            print("Creating fixtures...")
+            sql = app.get_plugin(SqlPlugin)
+            sql.fixture.init_fixture(db, app)
+            CACHE['fixtures'] = sql.fixture.create_all()
+        return CACHE['fixtures']
 
 
 class DatabaseTestCreation(object):

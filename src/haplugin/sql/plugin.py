@@ -4,8 +4,15 @@ from morfdict import StringDict
 
 from hatak.plugin import Plugin, RequestPlugin
 
+from .driver import Driver
+
 
 class SqlPlugin(Plugin):
+
+    def __init__(self, fixturecls):
+        super().__init__()
+        self.groups = []
+        self.fixture = fixturecls(self)
 
     def append_settings(self):
         def morf_sql_url(obj, value):
@@ -40,10 +47,15 @@ class SqlPlugin(Plugin):
             self.add_request_plugin(SqliteRequestPlugin)
         else:
             self.add_request_plugin(DatabaseRequestPlugin)
+        self.add_request_plugin(DriverRequestPlugin)
 
     def add_unpackers(self):
         self.unpacker.add('db', lambda req: req.db)
         self.unpacker.add('query', lambda req: req.db.query)
+        self.unpacker.add('driver', lambda req: req.driver)
+
+    def add_group(self, group):
+        self.groups.append(group)
 
 
 class DatabaseRequestPlugin(RequestPlugin):
@@ -63,3 +75,15 @@ class SqliteRequestPlugin(DatabaseRequestPlugin):
         engine = self.registry['db_engine']
         self.registry['db'] = sessionmaker(bind=engine)()
         return super().return_once()
+
+
+class DriverRequestPlugin(RequestPlugin):
+
+    def __init__(self):
+        super().__init__('driver')
+
+    def return_once(self):
+        driver = Driver(self.request.db)
+        for group in self.parent.groups:
+            driver.add_group(group)
+        return driver
