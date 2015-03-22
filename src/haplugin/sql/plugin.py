@@ -61,6 +61,11 @@ class SqlPlugin(Plugin):
     def add_group(self, group):
         self.groups.append(group)
 
+    def interract_with(self, plugin):
+        method = getattr(plugin, 'generate_drivers', None)
+        if method:
+            method(self)
+
 
 class DatabaseRequestPlugin(RequestPlugin):
 
