@@ -110,12 +110,15 @@ class TemporaryDatabaseObject(object):
 
     def __init__(self, db, cls, prepere=None):
         self.db = db
-        self.cls = cls
         self.obj = None
         self.prepere = prepere
+        self._create_method(cls)
+
+    def _create_method(self, cls):
+        self.create = cls
 
     def __enter__(self):
-        self.obj = self.cls()
+        self.obj = self.create()
         if self.prepere:
             self.prepere(self.obj)
         self.db.add(self.obj)
@@ -124,3 +127,9 @@ class TemporaryDatabaseObject(object):
 
     def __exit__(self, type, value, traceback):
         self.obj.delete(self.db)
+
+
+class TemporaryDriverObject(TemporaryDatabaseObject):
+
+    def __init__(self, driver, prepere=None):
+        super().__init__(driver.db, driver.create, prepere)
