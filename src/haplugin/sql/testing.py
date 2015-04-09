@@ -63,6 +63,14 @@ class DatabaseFixture(RequestFixture):
                 CACHE['fixtures'] = None
         return CACHE['fixtures']
 
+    @fixture
+    def mdb(self, request):
+        return request.db
+
+    @fixture
+    def query(self, request):
+        return request.db.query
+
 
 class DatabaseTestCreation(object):
 
