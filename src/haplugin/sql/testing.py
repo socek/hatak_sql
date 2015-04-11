@@ -44,11 +44,15 @@ class DatabaseFixture(RequestFixture):
         return raw_db[0]
 
     @fixture
-    def driver(self, app, request):
+    def driver(self, app, request, db):
         sql = app.get_plugin(SqlPlugin)
         request.driver = Driver(request.db)
         for group in sql.groups:
             request.driver.add_group(group)
+        return request.driver
+
+    @fixture
+    def mdriver(self, request):
         return request.driver
 
     @fixture
@@ -70,6 +74,10 @@ class DatabaseFixture(RequestFixture):
     @fixture
     def query(self, request):
         return request.db.query
+
+    @fixture
+    def mdriver(self, request):
+        return request.driver
 
 
 class DatabaseTestCreation(object):
@@ -141,3 +149,15 @@ class TemporaryDriverObject(TemporaryDatabaseObject):
 
     def __init__(self, driver, prepere=None):
         super().__init__(driver.db, driver.create, prepere)
+
+
+class DriverFixture(DatabaseFixture):
+
+    def _get_driver_class(self):
+        pass
+
+    @fixture
+    def fdriver(self, db, fixtures):
+        obj = self._get_driver_class()()
+        obj.init(db)
+        return obj
