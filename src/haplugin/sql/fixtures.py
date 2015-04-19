@@ -13,18 +13,28 @@ class FixtureGenerator(object):
         self.driver = Driver(db)
         for group in self.sql.groups:
             self.driver.add_group(group)
+        self.walk_thru_plugins()
+
+    def walk_thru_plugins(self):
+        for plugin in self.application.plugins:
+            method = getattr(plugin, 'generate_drivers', None)
+            if method:
+                method(self.driver)
 
     def create_all(self):
         self.make_all()
+        self.db.flush()
         return self.fixtures
 
     def _create(self, cls, **kwargs):
-        obj = cls.get_or_create(self.db, **kwargs)
+        driver = self._get_driver(cls)
+        obj = driver.create(**kwargs)
         self._add_object_to_fixtures(obj, kwargs['name'])
         return obj
 
     def _create_nameless(self, cls, **kwargs):
-        obj = cls.get_or_create(self.db, **kwargs)
+        driver = self._get_driver(cls)
+        obj = driver.create(**kwargs)
         self._add_nameless_object_to_fixtures(obj)
         return obj
 
@@ -39,3 +49,7 @@ class FixtureGenerator(object):
         data = self.fixtures.get(clsname, {})
         data[name] = obj
         self.fixtures[clsname] = data
+
+    def _get_driver(self, cls):
+        name = cls if isinstance(cls, str) else cls.__name__
+        return getattr(self.driver, name)
