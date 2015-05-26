@@ -20,7 +20,7 @@ class DriverGroup(object):
 
 class SqlDriver(DriverGroup):
 
-    def get_or_create(self, **kwargs):
+    def upsert(self, **kwargs):
         try:
             return self.query(self.model).filter_by(**kwargs).one()
         except NoResultFound:
