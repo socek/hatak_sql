@@ -49,6 +49,11 @@ class DatabaseFixture(RequestFixture):
         request.driver = Driver(request.db)
         for group in sql.groups:
             request.driver.add_group(group)
+        #TODO: this could be prettier
+        for plugin in app.plugins:
+            method = getattr(plugin, 'generate_drivers', None)
+            if method:
+                method(request.driver)
         return request.driver
 
     @fixture
