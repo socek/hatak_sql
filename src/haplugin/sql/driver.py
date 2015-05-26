@@ -32,6 +32,9 @@ class SqlDriver(DriverGroup):
     def find_all(self):
         return self.query(self.model)
 
+    def find_by(self, **kwargs):
+        return self.query(self.model).filter_by(**kwargs)
+
     def create(self, **kwargs):
         obj = self.model()
         for key, value in kwargs.items():
